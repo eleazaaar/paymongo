@@ -60,7 +60,6 @@ class PaymongoController extends PaymongoModel {
         $amount = filter_input(INPUT_POST, 'amount', FILTER_VALIDATE_FLOAT);
         $paymentMethod = strtoupper(trim($_POST['payment_method'] ?? ''));
 
-        // Convert the existing Xendit method names to PayMongo types.
         $paymentMethods = [
             'QRPH' => 'qrph',
             'CARDS'  => 'card',
@@ -313,15 +312,15 @@ class PaymongoController extends PaymongoModel {
 
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
-    $Xendit = new PaymongoController();
+    $Paymongo = new PaymongoController();
     
     if ($action == 'createPayment') {
-        $Xendit->createPayment();
+        $Paymongo->createPayment();
         exit;
     }
 
     if ($action === 'webhook') {
-        $Xendit->webhook();
+        $Paymongo->webhook();
         exit;
     }
 
