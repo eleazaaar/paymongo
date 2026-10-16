@@ -1,495 +1,441 @@
- 
-<?php
-header('Content-Type: text/html; charset=utf-8');
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Checkout | PayMongo</title>
-
+    <title>Payment Checkout | Paymongo</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         :root {
             --primary: #2563eb;
-            --primary-hover: #1d4ed8;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
             --text: #172033;
             --muted: #64748b;
-            --border: #e2e8f0;
+            --border: #dbe3ef;
             --background: #f3f6fc;
-            --surface: #ffffff;
+            --success: #15803d;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
-            min-height: 100vh;
-            padding: 32px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: Arial, Helvetica, sans-serif;
+            padding: 40px 16px;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
             color: var(--text);
-            background: var(--background);
+            background: radial-gradient(circle at top left, #e5efff 0, transparent 36%), var(--background);
         }
 
-        button,
-        input {
-            font: inherit;
-        }
+        button, input { font: inherit; }
 
-        .checkout {
+        .container {
             width: 100%;
-            max-width: 510px;
+            max-width: 650px;
+            margin: 0 auto;
             padding: 32px;
-            background: var(--surface);
-            border: 1px solid var(--border);
+            background: #fff;
+            border: 1px solid rgba(219, 227, 239, .8);
             border-radius: 20px;
-            box-shadow: 0 15px 45px rgba(31, 54, 92, .09);
+            box-shadow: 0 18px 55px rgba(31, 54, 92, .09);
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 11px;
-            margin-bottom: 30px;
+            gap: 10px;
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: -.7px;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            color: white;
+            background: var(--primary);
             font-size: 19px;
             font-weight: 800;
         }
 
-        .brand-mark {
-            width: 40px;
-            height: 40px;
-            display: grid;
-            place-items: center;
-            border-radius: 12px;
-            background: var(--primary);
-            color: #fff;
-            font-size: 21px;
-        }
-
-        .eyebrow {
-            margin: 0 0 9px;
-            color: var(--primary);
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.4px;
-            text-transform: uppercase;
+        .secure {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 12px;
         }
 
         h1 {
-            margin: 0 0 10px;
-            font-size: 28px;
-            letter-spacing: -.7px;
+            margin: 0;
+            font-size: clamp(25px, 5vw, 32px);
+            letter-spacing: -1px;
         }
 
         .subtitle {
-            margin: 0 0 28px;
+            margin: 9px 0 27px;
             color: var(--muted);
             font-size: 14px;
-            line-height: 1.7;
+            line-height: 1.6;
         }
 
-        .field-label {
+        .amount-panel {
+            padding: 20px;
+            background: #f8faff;
+            border: 1px solid #edf1f8;
+            border-radius: 14px;
+        }
+
+        .field-label, .section-title {
             display: block;
             margin-bottom: 10px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 700;
         }
 
-        .amount-wrap {
-            position: relative;
-            margin-bottom: 12px;
-        }
+        .amount-wrap { position: relative; }
 
         .currency {
             position: absolute;
             top: 50%;
-            left: 16px;
+            left: 15px;
             transform: translateY(-50%);
-            color: var(--muted);
             font-size: 20px;
             font-weight: 700;
         }
 
-        .amount-input {
+        input[type="number"], input[type="tel"] {
             width: 100%;
-            height: 60px;
-            padding: 12px 16px 12px 44px;
-            border: 1px solid var(--border);
-            border-radius: 11px;
+            min-height: 49px;
+            padding: 13px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
             outline: none;
+            background: #fff;
             color: var(--text);
-            font-size: 23px;
-            font-weight: 800;
             transition: border-color .2s, box-shadow .2s;
         }
 
-        .amount-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+        #amount {
+            padding-left: 43px;
+            font-size: 22px;
+            font-weight: 700;
         }
 
-        .amount-help {
-            margin: 8px 0 20px;
-            color: var(--muted);
-            font-size: 11px;
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+        }
+
+        input:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
         }
 
         .quick-amounts {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 28px;
+            gap: 9px;
+            margin-top: 12px;
         }
 
-        .quick-amount {
-            padding: 10px 4px;
+        .quick-amounts button {
+            padding: 10px 6px;
             border: 1px solid var(--border);
-            border-radius: 9px;
+            border-radius: 8px;
             background: #fff;
-            color: #475569;
-            font-size: 12px;
+            color: #334155;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             transition: .2s;
         }
 
-        .quick-amount:hover,
-        .quick-amount.active {
+        .quick-amounts button:hover,
+        .quick-amounts button.active {
             border-color: var(--primary);
-            background: #eff6ff;
+            background: var(--primary-light);
             color: var(--primary);
         }
 
-        .section-title {
-            margin: 0 0 12px;
-            font-size: 14px;
-            font-weight: 800;
+        .payment-section { margin-top: 28px; }
+
+        .section-heading {
+            margin: 0 0 13px;
+            font-size: 16px;
+            font-weight: 750;
         }
 
         .payment-options {
             display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 10px;
         }
 
         .payment-option {
             position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 135px;
+            padding: 16px 13px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            cursor: pointer;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+        }
+
+        .payment-option:hover {
+            border-color: #93b4fa;
+            background: #fbfdff;
+        }
+
+        .payment-option:has(input:checked) {
+            border: 2px solid var(--primary);
+            padding: 15px 12px;
+            background: #f5f8ff;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, .05);
         }
 
         .payment-option input {
             position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .payment-label {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            min-height: 76px;
-            padding: 14px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: border-color .2s, background .2s;
-        }
-
-        .payment-option input:checked + .payment-label {
-            border-color: var(--primary);
-            background: #f8fbff;
-            box-shadow: 0 0 0 1px var(--primary);
-        }
-
-        .payment-option input:focus-visible + .payment-label {
-            outline: 3px solid rgba(37, 99, 235, .2);
-            outline-offset: 2px;
+            top: 13px;
+            right: 13px;
+            width: 17px;
+            height: 17px;
+            accent-color: var(--primary);
         }
 
         .payment-icon {
             display: grid;
             place-items: center;
-            flex: 0 0 44px;
-            width: 44px;
-            height: 44px;
-            border-radius: 11px;
-            background: #eff6ff;
-            color: var(--primary);
+            width: 42px;
+            height: 36px;
+            margin-bottom: 14px;
+            border-radius: 9px;
+            background: #f1f5f9;
+            color: #334155;
             font-size: 14px;
             font-weight: 800;
         }
 
-        .payment-copy {
-            flex: 1;
-            min-width: 0;
-        }
+        .payment-icon.gcash { color: #0878ed; background: #e7f2ff; }
+        .payment-icon.maya { color: #008f62; background: #e7f9f1; }
+        .payment-icon.card { color: #274690; background: #e9efff; }
 
         .payment-name {
             display: block;
-            margin-bottom: 5px;
-            font-size: 13px;
-            font-weight: 800;
+            padding-right: 12px;
+            font-size: 14px;
+            font-weight: 750;
         }
 
         .payment-description {
             display: block;
+            margin-top: 5px;
             color: var(--muted);
             font-size: 11px;
             line-height: 1.5;
         }
 
-        .radio-indicator {
-            display: grid;
-            place-items: center;
-            flex: 0 0 18px;
-            width: 18px;
-            height: 18px;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 50%;
+        .details-panel {
+            margin-top: 17px;
+            padding: 18px;
+            border: 1px solid #d8e6ff;
+            border-radius: 12px;
+            background: #f6f9ff;
         }
 
-        .payment-option input:checked + .payment-label .radio-indicator {
-            border: 5px solid var(--primary);
+        .details-heading {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 15px;
         }
 
-        .payment-info {
-            margin-top: 15px;
-            padding: 15px;
-            border: 1px solid #dbeafe;
-            border-radius: 11px;
-            background: #f8fbff;
-        }
+        .details-heading .payment-icon { margin: 0; flex-shrink: 0; }
 
-        .payment-info strong {
+        .details-heading strong {
             display: block;
-            margin-bottom: 6px;
-            font-size: 12px;
+            font-size: 14px;
         }
 
-        .payment-info p {
-            margin: 0;
+        .details-heading small {
+            display: block;
+            margin-top: 4px;
             color: var(--muted);
             font-size: 12px;
-            line-height: 1.7;
+            line-height: 1.4;
         }
+
+        .hint {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .card-notice {
+            margin-top: 17px;
+            padding: 16px;
+            border: 1px solid #dbe5ff;
+            border-radius: 12px;
+            background: #f5f7ff;
+            color: #334b80;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .demo-notice {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            padding: 13px 15px;
+            border: 1px solid #fed7aa;
+            border-radius: 10px;
+            background: #fff7ed;
+            color: #9a3412;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .demo-notice strong { display: block; margin-bottom: 2px; }
 
         .submit-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 9px;
             width: 100%;
             min-height: 52px;
-            margin-top: 23px;
+            margin-top: 20px;
             padding: 14px;
             border: 0;
-            border-radius: 11px;
+            border-radius: 10px;
             background: var(--primary);
             color: #fff;
-            font-size: 14px;
-            font-weight: 800;
+            font-size: 15px;
+            font-weight: 750;
             cursor: pointer;
-            transition: background .2s;
+            transition: background .2s, transform .2s;
         }
 
-        .submit-btn:hover {
-            background: var(--primary-hover);
-        }
-
-        .submit-btn:disabled {
-            opacity: .65;
-            cursor: wait;
-        }
-
-        .security-note {
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            gap: 7px;
-            margin-top: 17px;
-            color: var(--muted);
-            font-size: 11px;
-            line-height: 1.6;
-            text-align: center;
-        }
+        .submit-btn:hover { background: var(--primary-dark); }
+        .submit-btn:active { transform: scale(.99); }
+        .submit-btn:disabled { opacity: .7; cursor: wait; }
 
         .footer {
-            margin-top: 25px;
-            padding-top: 18px;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+            padding-top: 17px;
             border-top: 1px solid #edf1f6;
             color: var(--muted);
             font-size: 11px;
-            text-align: center;
         }
 
-        .hidden {
-            display: none;
-        }
+        .hidden { display: none !important; }
 
-        @media (max-width: 480px) {
-            body {
-                padding: 14px 10px;
-                align-items: flex-start;
-            }
-
-            .checkout {
-                margin: 8px 0;
-                padding: 24px 18px;
-                border-radius: 15px;
-            }
-
-            h1 {
-                font-size: 25px;
-            }
-
-            .payment-label {
-                padding: 12px;
-            }
-
-            .quick-amount {
-                font-size: 11px;
-            }
+        @media (max-width: 540px) {
+            body { padding: 16px 10px; }
+            .container { padding: 21px 17px; border-radius: 15px; }
+            .topbar { margin-bottom: 25px; }
+            .brand { font-size: 18px; }
+            .secure { font-size: 11px; }
+            .payment-options { grid-template-columns: 1fr; }
+            .payment-option { flex-direction: row; align-items: center; min-height: auto; gap: 12px; padding: 13px; }
+            .payment-option:has(input:checked) { padding: 12px; }
+            .payment-icon { margin: 0; }
+            .payment-description { margin-top: 3px; }
+            .payment-option input { top: 50%; transform: translateY(-50%); }
+            .payment-name { padding-right: 20px; }
+            .quick-amounts { gap: 6px; }
+            .quick-amounts button { font-size: 12px; }
+            .footer { gap: 10px; }
         }
     </style>
 </head>
-
 <body>
-    <main class="checkout">
-        <div class="brand">
-            <span class="brand-mark">&lt;/&gt;</span>
-            <span>PayMongo Checkout</span>
+    <main class="container">
+        <div class="topbar">
+            <div class="brand"><span class="brand-mark">P</span><span>Paymongo</span></div>
+            <div class="secure"><span aria-hidden="true">🔒</span> Secure Checkout</div>
         </div>
 
-        <p class="eyebrow">Secure payment</p>
-        <h1>Complete your payment</h1>
-        <p class="subtitle">
-            Enter your payment amount and select your preferred payment method
-            to continue to PayMongo's secure checkout.
-        </p>
+        <h1>Payment Checkout</h1>
+        <p class="subtitle">Choose your preferred payment method and continue securely.</p>
 
-        <form
-            action="app/classes/controllers/PaymongoController.php?action=createPayment"
-            method="POST"
-            id="checkoutForm"
-        >
-            <label class="field-label" for="amount">Payment amount</label>
-
-            <div class="amount-wrap">
-                <span class="currency">₱</span>
-                <input
-                    class="amount-input"
-                    type="number"
-                    id="amount"
-                    name="amount"
-                    min="1"
-                    max="50000"
-                    step="0.01"
-                    value="100.00"
-                    inputmode="decimal"
-                    required
-                >
-            </div>
-
-            <p class="amount-help">Minimum ₱1.00 · Maximum ₱50,000.00</p>
-
-            <div class="quick-amounts" aria-label="Quick amount selection">
-                <button type="button" class="quick-amount" data-amount="50">₱50</button>
-                <button type="button" class="quick-amount active" data-amount="100">₱100</button>
-                <button type="button" class="quick-amount" data-amount="200">₱200</button>
-                <button type="button" class="quick-amount" data-amount="500">₱500</button>
-            </div>
-
-            <h2 class="section-title">Choose payment method</h2>
-
-            <div class="payment-options">
-                <div class="payment-option">
-                    <input
-                        type="radio"
-                        id="gcash"
-                        name="payment_method"
-                        value="QRPH"
-                        checked
-                        required
-                    >
-                    <label class="payment-label" for="gcash">
-                        <span class="payment-icon">G</span>
-                        <span class="payment-copy">
-                            <span class="payment-name">GCash</span>
-                            <span class="payment-description">
-                                Pay using your GCash account.
-                            </span>
-                        </span>
-                        <span class="radio-indicator"></span>
-                    </label>
+        <form action="app/classes/controllers/PaymongoController.php?action=createPayment" method="POST" id="checkoutForm">
+            <section class="amount-panel">
+                <label class="field-label" for="amount">Payment Amount (PHP)</label>
+                <div class="amount-wrap">
+                    <span class="currency">₱</span>
+                    <input type="number" id="amount" name="amount" min="1" max="50000" step="0.01" value="100.00" required>
                 </div>
 
-                <div class="payment-option">
-                    <input
-                        type="radio"
-                        id="paymaya"
-                        name="payment_method"
-                        value="PAYMAYA"
-                    >
-                    <label class="payment-label" for="paymaya">
-                        <span class="payment-icon">M</span>
-                        <span class="payment-copy">
-                            <span class="payment-name">Maya</span>
-                            <span class="payment-description">
-                                Pay with your Maya wallet, if enabled.
-                            </span>
-                        </span>
-                        <span class="radio-indicator"></span>
+                <div class="quick-amounts">
+                    <button type="button" data-amount="50">₱50</button>
+                    <button type="button" data-amount="100" class="active">₱100</button>
+                    <button type="button" data-amount="200">₱200</button>
+                    <button type="button" data-amount="500">₱500</button>
+                </div>
+            </section>
+
+            <section class="payment-section">
+                <h2 class="section-heading">Select Payment Method</h2>
+
+                <div class="payment-options">
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="QRPH" checked>
+                        <span class="payment-icon gcash">QR</span>
+                        <span><span class="payment-name">QR PH</span><span class="payment-description">Pay using QRPH</span></span>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="GCASH">
+                        <span class="payment-icon gcash">G</span>
+                        <span><span class="payment-name">GCash</span><span class="payment-description">Pay using GCash</span></span>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="PAYMAYA">
+                        <span class="payment-icon maya">M</span>
+                        <span><span class="payment-name">Maya</span><span class="payment-description">Pay using Maya</span></span>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="CARDS">
+                        <span class="payment-icon card">▤</span>
+                        <span><span class="payment-name">Credit / Debit Card</span><span class="payment-description">Paymongo's hosted checkout</span></span>
                     </label>
                 </div>
+            </section>
 
-                <div class="payment-option">
-                    <input
-                        type="radio"
-                        id="cards"
-                        name="payment_method"
-                        value="CARDS"
-                    >
-                    <label class="payment-label" for="cards">
-                        <span class="payment-icon">CC</span>
-                        <span class="payment-copy">
-                            <span class="payment-name">Credit or Debit Card</span>
-                            <span class="payment-description">
-                                Pay using a supported card.
-                            </span>
-                        </span>
-                        <span class="radio-indicator"></span>
-                    </label>
-                </div>
+            <div class="demo-notice">
+                <span aria-hidden="true">ⓘ</span>
+                <span><strong>Payment Notice</strong>Confirm your payment details before continuing. Your payment will be processed by the selected payment provider.</span>
             </div>
 
-            <div class="payment-info" id="paymentInfo" aria-live="polite">
-                <strong id="paymentInfoTitle">GCash payment</strong>
-                <p id="paymentInfoText">
-                    You'll continue to PayMongo Checkout to complete your GCash payment.
-                    Make sure your GCash account is active before continuing.
-                </p>
-            </div>
-
-            <button class="submit-btn" id="submitBtn" type="submit">
-                Continue to PayMongo Checkout
-                <span aria-hidden="true">→</span>
-            </button>
-
-            <div class="security-note">
-                <span aria-hidden="true">🔒</span>
-                <span>
-                    Your payment details are handled securely through PayMongo's
-                    hosted checkout. Do not enter your card details on this page.
-                </span>
-            </div>
+            <button type="submit" class="submit-btn" id="submitBtn">Continue to Wallet Confirmation <span aria-hidden="true">→</span></button>
         </form>
 
-        <div class="footer">
-            Powered by PayMongo
-        </div>
+        <footer class="footer">
+            <span>🔒 Secure connection</span>
+            <span>Powered by Paymongo</span>
+            <span>Do not share your OTP</span>
+        </footer>
     </main>
 
     <script>
@@ -497,13 +443,15 @@ header('Content-Type: text/html; charset=utf-8');
         const amountInput = document.getElementById('amount');
         const submitBtn = document.getElementById('submitBtn');
         const amountButtons = document.querySelectorAll('[data-amount]');
-        const paymentInputs = document.querySelectorAll(
-            'input[name="payment_method"]'
-        );
+        const paymentInputs = document.querySelectorAll('input[name="payment_method"]');
         const paymentInfoTitle = document.getElementById('paymentInfoTitle');
         const paymentInfoText = document.getElementById('paymentInfoText');
 
         const paymentMessages = {
+            QRPH: {
+                title: 'QRPH payment',
+                text: "You'll continue to PayMongo Checkout to complete your QRPH payment. Make sure your QRPH is active before continuing."
+            },
             GCASH: {
                 title: 'GCash payment',
                 text: "You'll continue to PayMongo Checkout to complete your GCash payment. Make sure your GCash account is active before continuing."
@@ -523,15 +471,17 @@ header('Content-Type: text/html; charset=utf-8');
         };
 
         function updateAmountButtons() {
-            const currentAmount = Number(amountInput.value);
-
             amountButtons.forEach(function(button) {
-                button.classList.toggle(
-                    'active',
-                    Number(button.dataset.amount) === currentAmount
-                );
+                button.classList.toggle('active', Number(button.dataset.amount) === Number(amountInput.value));
             });
         }
+
+        amountButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                amountInput.value = this.dataset.amount;
+                updateAmountButtons();
+            });
+        });
 
         function updatePaymentMethod() {
             const selected = document.querySelector(
@@ -565,9 +515,7 @@ header('Content-Type: text/html; charset=utf-8');
 
         form.addEventListener('submit', function(event) {
             const amount = Number(amountInput.value);
-            const selected = document.querySelector(
-                'input[name="payment_method"]:checked'
-            );
+            const selected = document.querySelector('input[name="payment_method"]:checked');
 
             if (!Number.isFinite(amount) || amount < 1 || amount > 50000) {
                 event.preventDefault();
@@ -583,11 +531,11 @@ header('Content-Type: text/html; charset=utf-8');
             }
 
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Connecting to PayMongo...';
+            submitBtn.textContent = 'Please wait...';
         });
 
-        updateAmountButtons();
         updatePaymentMethod();
+        updateAmountButtons();
     </script>
 </body>
 </html>
